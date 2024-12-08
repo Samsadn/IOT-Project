@@ -58,6 +58,8 @@ This project demonstrates a smart home IoT system that simulates sensors, transm
 1. **Download Mosquitto**:
 
    - Download the installer from [Eclipse Mosquitto Downloads](https://mosquitto.org/download/).
+   *Note: Use versions lower than 2.0.12. Because the upper versions does not have websocket suooprt.* [Older versions](https://mosquitto.org/files/binary/win64/)
+   - We can also use [MQTT Explorar](https://mqtt-explorer.com/) to find what is going on on the broker!
 
 2. **Install Mosquitto**:
 

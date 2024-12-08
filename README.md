@@ -65,7 +65,7 @@ This project demonstrates a smart home IoT system that simulates sensors, transm
 
 3. **Update Configuration**:
 
-   - Locate the `mosquitto.conf` file (usually in the installation directory).
+   - Locate the `mosquitto.conf` file (usually in the installation directory, e.g C:\Program Files\mosquitto).
    - Add the following lines:
      ```
      listener 9001

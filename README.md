@@ -128,6 +128,7 @@ This project demonstrates a smart home IoT system that simulates sensors, transm
 2. Install dependencies:
    ```bash
    npm install
+   npm install --legacy-peer-deps
    ```
 
 3. Start the development server:

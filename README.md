@@ -103,6 +103,7 @@ This project demonstrates a smart home IoT system that simulates sensors, transm
 
    ```python
    MQTT_BROKER = "localhost"
+   MQTT_PORT = 1883
    ```
 
 3. Run the simulator:

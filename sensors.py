@@ -83,11 +83,22 @@ while True:
     current_motion_data = simulate_motion_sensor()
     current_motion = current_motion_data["motion_detected"]
     client.publish(MQTT_TOPIC_MOTION, json.dumps(current_motion_data))
+    print("Published Motion Sensor Data:", json.dumps(current_motion_data, indent=4))
 
-    # Simulate and publish other sensor data
-    client.publish(MQTT_TOPIC_DOOR, json.dumps(simulate_door_sensor()))
-    client.publish(MQTT_TOPIC_WINDOW, json.dumps(simulate_window_sensor()))
-    client.publish(MQTT_TOPIC_TEMPERATURE, json.dumps(simulate_temperature_sensor()))
+    # Simulate and publish door sensor data
+    door_data = simulate_door_sensor()
+    client.publish(MQTT_TOPIC_DOOR, json.dumps(door_data))
+    print("Published Door Sensor Data:", json.dumps(door_data, indent=4))
+
+    # Simulate and publish window sensor data
+    window_data = simulate_window_sensor()
+    client.publish(MQTT_TOPIC_WINDOW, json.dumps(window_data))
+    print("Published Window Sensor Data:", json.dumps(window_data, indent=4))
+
+    # Simulate and publish temperature sensor data
+    temperature_data = simulate_temperature_sensor()
+    client.publish(MQTT_TOPIC_TEMPERATURE, json.dumps(temperature_data))
+    print("Published Temperature Sensor Data:", json.dumps(temperature_data, indent=4))
 
     # Publish image only when motion state changes to True
     if current_motion and not motion_detected:
@@ -95,7 +106,9 @@ while True:
         if image_data:
             client.publish(MQTT_TOPIC_CAMERA_IMAGE, image_data)
             client.publish(MQTT_TOPIC_CAMERA_MOTION, "1")
-    
+            print("Published Camera Image (Base64): [Image Data]")
+            print("Published Camera Motion Event: Motion detected")
+
     # Update the motion state
     motion_detected = current_motion
 

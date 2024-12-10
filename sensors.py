@@ -3,6 +3,7 @@ import json
 import time
 import random
 import base64
+from builtins import FileNotFoundError, print, open, round
 
 # --- MQTT Configuration ---
 MQTT_BROKER = "localhost"
@@ -62,14 +63,14 @@ def capture_image():
         return None
 
 # --- MQTT Client Setup ---
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc, properties=None):
     """Callback for MQTT connect."""
     if rc == 0:
         print("Connected to MQTT Broker!")
     else:
         print(f"Failed to connect, return code {rc}")
 
-client = mqtt.Client()
+client = mqtt.Client(protocol=mqtt.MQTTv5)
 client.on_connect = on_connect
 client.connect(MQTT_BROKER, MQTT_PORT, 60)
 client.loop_start()

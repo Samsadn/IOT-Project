@@ -1,38 +1,178 @@
+/* General App Styles */
 .App {
+  background: linear-gradient(135deg, #85d0ff, #9e6d8a);
+  min-height: 100vh;
+  padding: 40px;
+  font-family: 'Roboto', sans-serif;
+  color: #2e3b47;
+
+}
+
+/* Grid Layout for Sections */
+.grid {
+  display: grid;
+
+  gap: 80px;
+  margin-top: 50px;
+  margin-left: 20px; /* Move to the left */
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr; /* Two columns for tablet view */
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr 1fr; /* Three columns for larger screens */
+  }
+}
+
+/* Temperature Data (Menu Bar) */
+.temperature-data {
+  background: rgba(255, 255, 255, 0.8); /* Slightly transparent background */
+  color: #2e3b47;
+  padding: 15px 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  margin-left: 100px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Sensor Data Section (Vertical Layout) */
+.sensor-data {
+  background: #fff;
+  padding: 30px;
+  border-radius: 70px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  width: 800px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-content: center;
+}
+
+/* Individual Sensor Grid Styling */
+.sensor-grid {
+  display: flex; /* Use flex to align sensor items vertically */
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px; /* Increased padding for larger space inside each grid */
+  height: 120px; /* Fixed height to extend the size vertically */
+  width: 100%; /* Ensures the width fills the available space */
+  max-width: 100%; /* Prevents the grid from expanding beyond the container */
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Slightly increased shadow for a more prominent effect */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-bottom: 40px; /* Increased bottom margin for better spacing */
+  font-size: 1.4rem; /* Larger font size for better readability */
+  font-weight: 600; /* Increased font weight for emphasis */
+  overflow: hidden; /* Ensures any overflow content is clipped */
+}
+
+/* Different Backgrounds for Each Sensor */
+.sensor-grid.motion {
+  background: #e9f7f3; /* Soft green background */
+}
+
+.sensor-grid.door {
+  background: #fff3e0; /* Soft yellow background */
+}
+
+.sensor-grid.window {
+  background: #f3e5f5; /* Soft purple background */
+}
+
+.sensor-grid.temperature {
+  background: #e1f5fe; /* Soft blue background */
+}
+
+/* Hover Effects for Sensor Grids */
+.sensor-grid:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Temperature Chart Section */
+.temp-chart {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  max-height: 500px;
+  margin-left: -40px; /* Move the chart to the left by 30px */
+}
+
+.temp-chart h2 {
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 20px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.temp-chart:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
+/* Camera Image Section */
+.camera-image {
+  background: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  display: block;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  grid-column: span 1; /* Ensure image stays within its grid column */
+  max-height: 100px;
+  margin-top: 50px; /* Moves the section down by 50px */
+  margin-left: -40px; /* Moves the section to the left by 40px */
 }
 
-.App-link {
-  color: #61dafb;
+/* Ensure the image fits within the grid box without expanding it */
+.camera-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Ensure the image fits within the grid box without expanding */
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.camera-image img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
+
+.camera-image h2 {
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+/* Additional Styling for Headings and Text */
+h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+

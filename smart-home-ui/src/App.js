@@ -1,3 +1,4 @@
+import './App.css';
 import React, { useState, useEffect, useRef } from "react";
 import mqtt from "mqtt";
 import { Line } from "react-chartjs-2";
@@ -8,20 +9,20 @@ import {
   PointElement,
   LineElement,
   Title,
-  Tooltip,  
+  Tooltip,
   Legend,
-} from "chart.js";   
+} from "chart.js";
 
 import "chart.js/auto";
 
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
 );
 
 const MQTT_BROKER = "ws://localhost:9001"; // Replace with your broker address
@@ -97,7 +98,7 @@ function App() {
   }, []);
 
   const chartData = {
-    labels: Array.from({ length: temperatureData.length }, (_, i) => i + 1),
+    labels: Array.from({length: temperatureData.length}, (_, i) => i + 1),
     datasets: [
       {
         label: "Temperature (°C)",
@@ -110,76 +111,78 @@ function App() {
   };
 
   return (
-    <div className="App p-8 bg-gradient-to-r from-blue-200 to-purple-200 min-h-screen">
-      <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
-        Smart Home Dashboard
-      </h1>
+      <div
+          className="App bg-gradient-to-br from-blue-200 via-indigo-200 to-purple-200 min-h-screen flex flex-col items-center px-6 py-8 font-sans">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sensor Data */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Sensors</h2>
-          <ul className="list-disc pl-5">
-            <li className="flex items-center justify-between py-2">
-              <span className="text-gray-700">Motion:</span>
-              <span
-                className={`font-bold ${
-                  motionDetected ? "text-red-500" : "text-green-500"
-                }`}
-              >
-                {motionDetected ? "Detected" : "Not Detected"}
-              </span>
-            </li>
-            <li className="flex items-center justify-between py-2">
-              <span className="text-gray-700">Door:</span>
-              <span
-                className={`font-bold ${
-                  doorOpen ? "text-red-500" : "text-green-500"
-                }`}
-              >
-                {doorOpen ? "Open" : "Closed"}
-              </span>
-            </li>
-            <li className="flex items-center justify-between py-2">
-              <span className="text-gray-700">Window:</span>
-              <span
-                className={`font-bold ${
-                  windowOpen ? "text-red-500" : "text-green-500"
-                }`}
-              >
-                {windowOpen ? "Open" : "Closed"}
-              </span>
-            </li>
-            <li className="flex items-center justify-between py-2">
-              <span className="text-gray-700">Temperature:</span>
-              <span className="font-bold">{temperature} °C</span>
-            </li>
-          </ul>
+        {/* Temperature Display Section */}
+        <div
+            className="temperature-data bg-blue-500 text-white p-4 rounded-lg w-full max-w-5xl flex justify-between items-center mb-6">
+          <span className="text-xl font-bold">Current Indoor Temperature: {temperature} °C</span>
         </div>
 
-        {/* Temperature Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-md col-span-2 lg:col-span-1">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">
-            Temperature Chart
-          </h2>
-          <Line data={chartData} />
-        </div>
+        {/* Main Title of the Dashboard */}
+        <h1 className="text-5xl font-bold text-gray-900 tracking-tight mb-8 text-center shadow-md transform transition duration-300 ease-in-out hover:scale-105">
+          My Smart Home
+        </h1>
 
-        {/* Camera Image */}
-        <div className="bg-white p-6 rounded-lg shadow-md col-span-2 lg:col-span-1">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Door Camera</h2>
-          {cameraImage && showImage ? ( // Use showImage here to control visibility
-            <img
-              src={`data:image/jpeg;base64,${cameraImage}`}
-              alt="Door Camera"
-              className="border-2 border-gray-300 rounded-lg shadow-md max-w-xs mx-auto"
-            />
-          ) : (
-            <p className="text-gray-600 text-center">No image available</p>
-          )}
+        {/* Grid Layout for Sections */}
+        <div className="grid gap-6 w-full max-w-5xl grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+
+          {/* Sensor Data Section */}
+          <div className="sensor-data bg-white p-6 rounded-lg shadow-md col-span-2 lg:col-span-1">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">My Sensors</h2>
+            <div className="grid gap-4">
+              {/* Motion Sensor */}
+              <div className="sensor-grid motion">
+                <span className="sensor-label">Motion:</span>
+                <span className={`sensor-value ${motionDetected ? "active text-green-500" : "inactive text-red-500"}`}>
+              {motionDetected ? "Detected" : "Not Detected"}
+            </span>
+              </div>
+
+              {/* Door Sensor */}
+              <div className="sensor-grid door">
+                <span className="sensor-label">Door:</span>
+                <span className={`sensor-value ${doorOpen ? "warning text-orange-500" : "active text-green-500"}`}>
+              {doorOpen ? "Open" : "Closed"}
+            </span>
+              </div>
+
+              {/* Window Sensor */}
+              <div className="sensor-grid window">
+                <span className="sensor-label">Window:</span>
+                <span className={`sensor-value ${windowOpen ? "inactive text-red-500" : "active text-green-500"}`}>
+              {windowOpen ? "Open" : "Closed"}
+            </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Temperature Chart and Door Camera Section side by side */}
+          <div className="lg:grid lg:grid-cols-2 lg:gap-6 w-full max-w-5xl">
+
+            {/* Temperature Chart */}
+            <div className="temp-chart p-6 bg-white rounded-lg shadow-md mb-6 lg:mb-0">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Temperature Chart</h3>
+              <Line data={chartData}/>
+            </div>
+
+            {/* Camera Image Section */}
+            <div className="camera-image p-6 bg-white rounded-lg shadow-md">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">Door Camera</h2>
+              {cameraImage && showImage ? (
+                  <img
+                      src={`data:image/jpeg;base64,${cameraImage}`}
+                      alt="Door Camera"
+                      className="border-2 border-gray-300 rounded-lg shadow-md max-w-xs mx-auto"
+                  />
+              ) : (
+                  <p className="text-gray-600 text-center">No motion at the door</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
   );
 }
 

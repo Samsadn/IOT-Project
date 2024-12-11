@@ -14,6 +14,7 @@ MQTT_TOPIC_WINDOW = "home/security/window"
 MQTT_TOPIC_TEMPERATURE = "home/sensors/temperature"
 MQTT_TOPIC_CAMERA_IMAGE = "home/camera/door/image"
 MQTT_TOPIC_CAMERA_MOTION = "home/camera/door/motion"
+MQTT_TOPIC_LIGHT = "home/security/light"  # Topic for light sensor data
 
 # --- Sensor Data Simulation Functions ---
 def simulate_motion_sensor():
@@ -25,9 +26,9 @@ def simulate_motion_sensor():
         "timestamp": time.time()
     }
 
-def simulate_door_sensor():
-    """Simulates door sensor data."""
-    door_open = random.choice([True, False])
+def simulate_door_sensor(motion_detected):
+    """Simulates door sensor data based on motion detection."""
+    door_open = motion_detected  # Door is open if motion is detected
     return {
         "sensor": "door_sensor_1",
         "door_open": door_open,
@@ -62,6 +63,16 @@ def capture_image():
         print("Error: Placeholder image not found.")
         return None
 
+def simulate_light_sensor(motion_detected):
+    """Simulates light sensor data based on motion detection."""
+    # Light is on when motion is detected, off otherwise
+    light_on = motion_detected
+    return {
+        "sensor": "light_sensor_1",
+        "light_on": light_on,
+        "timestamp": time.time()
+    }
+
 # --- MQTT Client Setup ---
 def on_connect(client, userdata, flags, rc, properties=None):
     """Callback for MQTT connect."""
@@ -85,8 +96,8 @@ while True:
     client.publish(MQTT_TOPIC_MOTION, json.dumps(current_motion_data))
     print("Published Motion Sensor Data:", json.dumps(current_motion_data, indent=4))
 
-    # Simulate and publish door sensor data
-    door_data = simulate_door_sensor()
+    # Simulate and publish door sensor data based on motion detection
+    door_data = simulate_door_sensor(current_motion)  # Pass motion state to door sensor simulation
     client.publish(MQTT_TOPIC_DOOR, json.dumps(door_data))
     print("Published Door Sensor Data:", json.dumps(door_data, indent=4))
 
@@ -100,6 +111,11 @@ while True:
     client.publish(MQTT_TOPIC_TEMPERATURE, json.dumps(temperature_data))
     print("Published Temperature Sensor Data:", json.dumps(temperature_data, indent=4))
 
+    # Simulate light sensor data based on motion detection
+    light_data = simulate_light_sensor(current_motion)
+    client.publish(MQTT_TOPIC_LIGHT, json.dumps(light_data))
+    print("Published Light Sensor Data:", json.dumps(light_data, indent=4))
+
     # Publish image only when motion state changes to True
     if current_motion and not motion_detected:
         image_data = capture_image()
@@ -110,7 +126,7 @@ while True:
             print("Published Camera Motion Event: Motion detected")
 
     # Update the motion state
-    motion_detected = current_motion
+
 
     # Wait for 5 seconds before sending the next set of data
     time.sleep(5)

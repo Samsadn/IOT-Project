@@ -32,6 +32,7 @@ const MQTT_TOPIC_WINDOW = "home/security/window";
 const MQTT_TOPIC_TEMPERATURE = "home/sensors/temperature";
 const MQTT_TOPIC_CAMERA_IMAGE = "home/camera/door/image";
 const MQTT_TOPIC_CAMERA_MOTION = "home/camera/door/motion";
+const MQTT_TOPIC_LIGHT = "home/security/light";  // Topic for light sensor data
 
 function App() {
   const [motionDetected, setMotionDetected] = useState(false);
@@ -41,6 +42,7 @@ function App() {
   const [temperatureData, setTemperatureData] = useState([]);
   const [cameraImage, setCameraImage] = useState(null);
   const [showImage, setShowImage] = useState(false);
+  const [lightOn, setLightOn] = useState(false);  // New state for light sensor
   const timeoutId = useRef(null);
 
   useEffect(() => {
@@ -54,14 +56,26 @@ function App() {
       client.subscribe(MQTT_TOPIC_TEMPERATURE);
       client.subscribe(MQTT_TOPIC_CAMERA_IMAGE);
       client.subscribe(MQTT_TOPIC_CAMERA_MOTION);
+      client.subscribe(MQTT_TOPIC_LIGHT);  // Subscribe to light sensor topic
     });
 
     client.on("message", (topic, message) => {
       if (topic === MQTT_TOPIC_MOTION) {
-        setMotionDetected(JSON.parse(message.toString()).motion_detected);
-      } else if (topic === MQTT_TOPIC_DOOR) {
-        setDoorOpen(JSON.parse(message.toString()).door_open);
-      } else if (topic === MQTT_TOPIC_WINDOW) {
+        const motionData = JSON.parse(message.toString());
+        const motionDetected = motionData.motion_detected;
+        setMotionDetected(motionDetected);
+
+        // Always set the door state based on motion detection
+        setDoorOpen(motionDetected);  // If motion is detected, door is open, otherwise closed
+      }
+
+          // We no longer need to listen to the door sensor state, as it should always mirror motion
+          // else if (topic === MQTT_TOPIC_DOOR) {
+          //   const doorData = JSON.parse(message.toString());
+          //   setDoorOpen(doorData.door_open);
+      // }
+
+      else if (topic === MQTT_TOPIC_WINDOW) {
         setWindowOpen(JSON.parse(message.toString()).window_open);
       } else if (topic === MQTT_TOPIC_TEMPERATURE) {
         const tempData = JSON.parse(message.toString());
@@ -69,7 +83,7 @@ function App() {
         setTemperatureData((prevData) => {
           const newData = [...prevData, tempData.temperature];
           if (newData.length > 10) {
-            newData.shift();
+            newData.shift();  // Keep only the latest 10 readings
           }
           return newData;
         });
@@ -86,6 +100,9 @@ function App() {
         timeoutId.current = setTimeout(() => {
           setShowImage(false);
         }, 5000);
+      } else if (topic === MQTT_TOPIC_LIGHT) {
+        // Handle light sensor data
+        setLightOn(JSON.parse(message.toString()).light_on); // Update light state
       }
     });
 
@@ -95,7 +112,7 @@ function App() {
         client.end();
       }
     };
-  }, []);
+  }, []);  // Empty dependency array, as we want to listen for messages without relying on state changes
 
   const chartData = {
     labels: Array.from({length: temperatureData.length}, (_, i) => i + 1),
@@ -111,12 +128,10 @@ function App() {
   };
 
   return (
-      <div
-          className="App bg-gradient-to-br from-blue-200 via-indigo-200 to-purple-200 min-h-screen flex flex-col items-center px-6 py-8 font-sans">
+      <div className="App bg-gradient-to-br from-blue-200 via-indigo-200 to-purple-200 min-h-screen flex flex-col items-center px-6 py-8 font-sans">
 
         {/* Temperature Display Section */}
-        <div
-            className="temperature-data bg-blue-500 text-white p-4 rounded-lg w-full max-w-5xl flex justify-between items-center mb-6">
+        <div className="temperature-data bg-blue-500 text-white p-4 rounded-lg w-full max-w-5xl flex justify-between items-center mb-6">
           <span className="text-xl font-bold">Current Indoor Temperature: {temperature} °C</span>
         </div>
 
@@ -136,24 +151,32 @@ function App() {
               <div className="sensor-grid motion">
                 <span className="sensor-label">Motion:</span>
                 <span className={`sensor-value ${motionDetected ? "active text-green-500" : "inactive text-red-500"}`}>
-              {motionDetected ? "Detected" : "Not Detected"}
-            </span>
+                {motionDetected ? "Detected" : "Not Detected"}
+              </span>
               </div>
 
               {/* Door Sensor */}
               <div className="sensor-grid door">
                 <span className="sensor-label">Door:</span>
                 <span className={`sensor-value ${doorOpen ? "warning text-orange-500" : "active text-green-500"}`}>
-              {doorOpen ? "Open" : "Closed"}
-            </span>
+                {doorOpen ? "Open" : "Closed"}
+              </span>
               </div>
 
               {/* Window Sensor */}
               <div className="sensor-grid window">
                 <span className="sensor-label">Window:</span>
                 <span className={`sensor-value ${windowOpen ? "inactive text-red-500" : "active text-green-500"}`}>
-              {windowOpen ? "Open" : "Closed"}
-            </span>
+                {windowOpen ? "Open" : "Closed"}
+              </span>
+              </div>
+
+              {/* Light Sensor */}
+              <div className="sensor-grid light">
+                <span className="sensor-label">Light:</span>
+                <span className={`sensor-value ${lightOn ? "active text-yellow-500" : "inactive text-gray-500"}`}>
+                {lightOn ? "On" : "Off"}
+              </span>
               </div>
             </div>
           </div>

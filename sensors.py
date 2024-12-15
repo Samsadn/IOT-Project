@@ -15,6 +15,7 @@ MQTT_TOPIC_TEMPERATURE = "home/sensors/temperature"
 MQTT_TOPIC_CAMERA_IMAGE = "home/camera/door/image"
 MQTT_TOPIC_CAMERA_MOTION = "home/camera/door/motion"
 MQTT_TOPIC_LIGHT = "home/security/light"  # Topic for light sensor data
+MQTT_TOPIC_SMOKE = "home/security/smoke"  # Topic for smoke sensor data
 
 # --- Sensor Data Simulation Functions ---
 def simulate_motion_sensor():
@@ -73,6 +74,18 @@ def simulate_light_sensor(motion_detected):
         "timestamp": time.time()
     }
 
+def simulate_smoke_sensor():
+    """Simulates smoke sensor data."""
+    # Create a list with 20 True values and 80 False values
+    result = [True] * 30 + [False] * 70
+
+    # Shuffle the list to randomize the order
+    smoke_detected = random.shuffle(result)
+    return {
+        "sensor": "smoke_sensor_1",
+        "smoke_detected": smoke_detected,
+        "timestamp": time.time()
+    }
 # --- MQTT Client Setup ---
 def on_connect(client, userdata, flags, rc, properties=None):
     """Callback for MQTT connect."""
@@ -115,6 +128,11 @@ while True:
     light_data = simulate_light_sensor(current_motion)
     client.publish(MQTT_TOPIC_LIGHT, json.dumps(light_data))
     print("Published Light Sensor Data:", json.dumps(light_data, indent=4))
+
+    # Simulate and publish smoke sensor data
+    smoke_data = simulate_smoke_sensor()
+    client.publish(MQTT_TOPIC_SMOKE, json.dumps(smoke_data))
+    print("Published smoke Sensor Data:", json.dumps(smoke_data, indent=4))
 
     # Publish image only when motion state changes to True
     if current_motion and not motion_detected:

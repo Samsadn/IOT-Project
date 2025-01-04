@@ -23,7 +23,6 @@ import {
 } from "recharts";
 import mqtt from "mqtt";
 import axios from "axios";
-import Charts from "./Charts"; // New page
 
 const MQTT_BROKER = "ws://localhost:9001"; // Replace with your broker address
 const MQTT_TOPIC_DOOR_MOTION = "home/security/door/motion"

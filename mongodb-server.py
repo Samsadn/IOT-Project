@@ -3,6 +3,8 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 import json
+from dateutil import parser
+import pytz
 
 # MongoDB Configuration
 MONGO_URI = "mongodb+srv://iotgroup6:iotgroup6@iotcluster-v0.ykiu0.mongodb.net/?retryWrites=true&w=majority&appName=IOTCluster-V0"
@@ -56,8 +58,11 @@ def fetch_motion_data():
     Endpoint to fetch motion detection data for the last 7 days.
     """
     try:
-        # Calculate the start and end of the last 7 days
-        end_date = datetime.utcnow()
+        # Set UTC timezone
+        utc = pytz.UTC
+
+        # Calculate the start and end of the last 7 days in UTC
+        end_date = utc.localize(datetime.utcnow())  # Make end_date offset-aware
         start_date = end_date - timedelta(days=7)
 
         # Initialize an empty list to hold the data for the last 7 days
@@ -67,44 +72,49 @@ def fetch_motion_data():
         query = {
             "topic": "home/security/door/motion",
             "timestamp": {
-                "$gte": start_date,
-                "$lte": end_date
+                "$gte": start_date.isoformat(),
+                "$lte": end_date.isoformat()
             }
         }
 
         # Fetch the data from the collection
         data = list(collection.find(query, {"_id": 0, "timestamp": 1, "payload": 1}))
 
-        # Create a dictionary to store motion data for each of the last 7 days
+        # Process the data for each of the last 7 days
         for i in range(7):
-            day_data = [0] * 24  # 24 hours in a day (0 = no motion, 1 = motion detected)
+            day_data = [0] * 24  # Initialize array for 24 hours
             day_start = start_date + timedelta(days=i)
             day_end = day_start + timedelta(days=1)
 
-            # Process each document
             for entry in data:
-                timestamp = entry["timestamp"]
-                if day_start <= timestamp < day_end:
-                    # Parse the payload to check if motion was detected
+                # Parse MongoDB timestamp
+                mongo_timestamp = entry["timestamp"]
+                if isinstance(mongo_timestamp, str):
+                    mongo_timestamp = parser.parse(mongo_timestamp).astimezone(utc)  # Ensure offset-aware
+
+                if day_start <= mongo_timestamp < day_end:
+                    # Parse the payload
                     payload = entry["payload"]
-                    motion_detected = False
                     if isinstance(payload, str):
-                        payload = eval(payload)  # Converts string to dictionary (for demo)
-                    if payload.get("motion_detected", False):
-                        # Set the motion data for the specific hour
-                        hour = timestamp.hour
+                        payload = json.loads(payload)
+
+                    # Check if motion was detected
+                    motion_detected = payload.get("motion_detected", False)
+                    if motion_detected:
+                        # Extract the hour and update day_data
+                        hour = mongo_timestamp.hour
                         day_data[hour] = 1
 
-            # Append the day's motion data to the list
+            # Append processed data for the day
             motion_data.append({
                 "date": day_start.strftime("%Y-%m-%d"),
                 "motion_data": day_data
             })
-        print(jsonify(motion_data))
 
         return jsonify(motion_data), 200
 
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
     
 
@@ -182,14 +192,65 @@ def motion_insights():
             "day_with_lowest_motion": {"date": min_day, "count": daily_motion_counts.get(min_day, 0)}
         }
 
-        # Debug: Print the fetched data
-        print(f"Fetched data: {insights}")
-
         return jsonify(insights), 200
 
     except Exception as e:
         print(f"Error: {e}")  # Log the error
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/fetch-historical-data", methods=["GET"])
+def fetch_historical_data():
+    """
+    Endpoint to fetch aggregated daily motion detection data for the last 90 days.
+    """
+    try:
+        # Calculate the start and end dates for the last 90 days
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=90)
+
+        # MongoDB aggregation pipeline
+        pipeline = [
+            {
+                "$match": {
+                    "topic": "home/security/door/motion",
+                    "timestamp": {"$gte": start_date.isoformat(), "$lte": end_date.isoformat()}
+                }
+            },
+            {
+                "$project": {
+                    "day": {"$dateToString": {"format": "%Y-%m-%d", "date": {"$toDate": "$timestamp"}}},
+                    "payload": 1
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$day",
+                    "total_motions": {
+                        "$sum": {
+                            "$cond": [
+                                {"$eq": [True, {"$toBool": {"$toBool": "$payload.motion_detected"}}]},
+                                1,
+                                0
+                            ]
+                        }
+                    }
+                }
+            },
+            {"$sort": {"_id": 1}}  # Sort by date
+        ]
+
+        # Execute the aggregation query
+        results = list(collection.aggregate(pipeline))
+
+        # Format the results as a JSON response
+        historical_data = [{"date": r["_id"], "total_motions": r["total_motions"]} for r in results]
+
+        return jsonify(historical_data), 200
+
+    except Exception as e:
+        print(f"Error fetching historical data: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

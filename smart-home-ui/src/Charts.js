@@ -30,6 +30,7 @@ import {
 
 const MotionChart = () => {
   const [motionData, setMotionData] = useState([]);
+  const [historicalData, setHistoricalData] = useState([]);
   const [insightData, setInsightData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,20 +39,23 @@ const MotionChart = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [motionResponse, insightResponse] = await Promise.all([
+        const [motionResponse, insightResponse, historicalResponse] = await Promise.all([
           fetch('http://localhost:5000/fetch-motion-data'),
-          fetch('http://localhost:5000/motion-insights')
+          fetch('http://localhost:5000/motion-insights'),
+          fetch('http://localhost:5000/fetch-historical-data')
         ]);
 
-        if (!motionResponse.ok || !insightResponse.ok) {
+        if (!motionResponse.ok || !insightResponse.ok || !historicalResponse.ok) {
           throw new Error('Failed to fetch data');
         }
 
         const motionResult = await motionResponse.json();
         const insightResult = await insightResponse.json();
+        const historicalResult = await historicalResponse.json();
 
         setMotionData(motionResult);
         setInsightData(insightResult);
+        setHistoricalData(historicalResult);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -71,22 +75,18 @@ const MotionChart = () => {
   } = insightData || {};
 
   // Format data for Recharts (LineChart)
-  const formattedData = motionData.map((day) => ({
-    date: day.date,
-    ...day.motion_data.reduce((acc, value, index) => {
-      acc[`hour_${index}`] = value ? 1 : 0; // 1 = motion, 0 = no motion
+  const formattedData = motionData.map((day) => {
+    const hourlyData = day.motion_data.reduce((acc, value, index) => {
+      acc[`hour_${index}`] = value ? 1 : 0; // Map each hour to 1 or 0
       return acc;
-    }, {}),
-  }));
-
-  // Format data for Heatmap (BarChart)
-  const heatmapData = motionData.map((day) => ({
-    day: day.date,
-    hours: day.motion_data.map((value, index) => ({
-      hour: index,
-      motionDetected: value ? 1 : 0, // 1 = motion, 0 = no motion
-    }))
-  }));
+    }, {});
+  
+    return {
+      date: day.date,
+      total_motions: day.motion_data.reduce((acc, value) => acc + value, 0), // Total daily motions
+      ...hourlyData,
+    };
+  });
 
   // Function to determine color based on motion detection intensity
   const getBarColor = (motionCount) => {
@@ -126,7 +126,7 @@ const MotionChart = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Paper elevation={3} sx={{ padding: 3 }}>
               <Typography variant="h6" mb={2}>Peak Hours</Typography>
-              <Typography variant="body1">{peak_hours.map(hour => `${hour}:00`).join(', ')}</Typography>
+              <Typography variant="h5" color="primary">{peak_hours.map(hour => `${hour}:00`).join(', ')}</Typography>
             </Paper>
           </Grid>
 
@@ -154,54 +154,59 @@ const MotionChart = () => {
           </Typography>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={formattedData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
-              <XAxis dataKey="date" />
-              <YAxis domain={[0, 1]} ticks={[0, 1]} />
-              <Tooltip />
-              <Legend />
-              {formattedData.length > 0 &&
+                <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                {/* Line for Total Daily Motions */}
+                <Line
+                type="monotone"
+                dataKey="total_motions"
+                stroke="#ff7300"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                />
+                {/* Lines for Hourly Data */}
+                {formattedData.length > 0 &&
                 Object.keys(formattedData[0])
-                  .filter((key) => key !== "date")
-                  .map((hour, index) => (
+                    .filter((key) => key.startsWith("hour_")) // Filter hourly keys
+                    .map((hour, index) => (
                     <Line
-                      key={index}
-                      type="monotone"
-                      dataKey={hour}
-                      stroke={`hsl(${(index * 360) / 24}, 100%, 50%)`}
-                      dot={false}
-                      strokeWidth={2}
+                        key={index}
+                        type="monotone"
+                        dataKey={hour}
+                        stroke={`hsl(${(index * 360) / 24}, 100%, 50%)`}
+                        dot={false}
+                        strokeWidth={0}
                     />
-                  ))}
-              <Brush />
-              <ReferenceLine y={0.5} label="Motion Threshold" stroke="gray" strokeDasharray="3 3" />
+                    ))}
+                <Brush />
+                <ReferenceLine y={0.5} label="Threshold" stroke="gray" strokeDasharray="3 3" />
             </LineChart>
           </ResponsiveContainer>
         </Box>
 
-        {/* Heatmap */}
-        <Box>
+        {/* Prediction Chart */}
+        <Box mb={10}>
           <Typography variant="h6" align="center" gutterBottom>
-            Motion Detection Heatmap (Hourly Overview)
+            Motion Detection Prediction (Under Development)
           </Typography>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={heatmapData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              {heatmapData.map((day, index) => (
-                <Bar key={index} dataKey="motionDetected" stackId="a" barSize={10}>
-                  {day.hours.map((hour, hourIndex) => (
-                    <Cell
-                      key={hourIndex}
-                      fill={getBarColor(hour.motionDetected)}
-                      width={30}
-                    />
-                  ))}
-                </Bar>
-              ))}
-            </BarChart>
+            <LineChart data={historicalData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                type="monotone"
+                dataKey="total_motions"
+                stroke="#8884d8"
+                strokeWidth={2}
+                />
+            </LineChart>
           </ResponsiveContainer>
         </Box>
       </Box>

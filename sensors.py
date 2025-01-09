@@ -100,10 +100,14 @@ def simulate_light_sensor(motion_detected):
 def simulate_smoke_sensor():
     """Simulates smoke sensor data."""
     # Create a list with 20 True values and 80 False values
-    result = [True] * 30 + [False] * 70
+    result = [True] * 20 + [False] * 80
 
     # Shuffle the list to randomize the order
-    smoke_detected = random.shuffle(result)
+    random.shuffle(result)
+    
+    # Randomly select a value from the shuffled list
+    smoke_detected = random.choice(result)
+    
     return {
         "sensor": "smoke_sensor_1",
         "smoke_detected": smoke_detected,

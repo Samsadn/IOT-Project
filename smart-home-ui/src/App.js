@@ -51,7 +51,7 @@ const App = () => {
               <AppBar
                   position="static"
                   style={{
-                    background: "linear-gradient(90deg, #1976D2, #388E3C)",
+                    background: "linear-gradient(90deg,  #8b5aed, #78ebfc)",
                     boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
                   }}
               >

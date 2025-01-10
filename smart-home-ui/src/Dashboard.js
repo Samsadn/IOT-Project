@@ -134,7 +134,12 @@ const App = () => {
           return newData;
         });
       } else if (topic === MQTT_TOPIC_DOOR_CAMERA_IMAGE) {
-        setDoorCameraImage(message.toString());
+        const imageData = JSON.parse(message.toString());
+
+        // Extract the image data
+        const base64Image = imageData.image;
+
+        setDoorCameraImage(base64Image);
         setShowDoorImage(true); // Show the image immediately when it arrives
 
         // Clear existing timeout to avoid premature hiding
@@ -147,7 +152,12 @@ const App = () => {
           setShowDoorImage(false);
         }, 5000);
       } else if (topic === MQTT_TOPIC_WINDOW_CAMERA_IMAGE) {
-        setWindowCameraImage(message.toString());
+        const imageData = JSON.parse(message.toString());
+
+        // Extract the image data
+        const base64Image = imageData.image;
+
+        setWindowCameraImage(base64Image);
         setShowWindowImage(true); // Show the image immediately when it arrives
 
         // Clear existing timeout to avoid premature hiding

@@ -40,24 +40,6 @@ def simulate_window_motion_sensor():
         "timestamp": time.time()
     }
 
-def simulate_door_sensor(motion_detected):
-    """Simulates door sensor data based on motion detection."""
-    door_open = motion_detected  # Door is open if motion is detected
-    return {
-        "sensor": "door_sensor_1",
-        "door_open": door_open,
-        "timestamp": time.time()
-    }
-
-def simulate_window_sensor(motion_detected):
-    """Simulates window sensor data based on motion detected."""
-    window_open = motion_detected  # window is open if motion is detected
-    return {
-        "sensor": "window_sensor_1",
-        "window_open": window_open,
-        "timestamp": time.time()
-    }
-
 def simulate_temperature_sensor():
     """Simulates temperature sensor data."""
     temperature = round(random.uniform(20, 30), 2)
@@ -72,7 +54,11 @@ def capture_door_image():
     try:
         with open("placeholder_image_1_40.jpg", "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
-        return encoded_string
+        return {
+        "sensor": "door_camera_1",
+        "image": encoded_string,
+        "timestamp": time.time()
+    }
     except FileNotFoundError:
         print("Error: Placeholder image not found.")
         return None
@@ -82,7 +68,11 @@ def capture_window_image():
     try:
         with open("window-image.jpg", "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
-        return encoded_string
+        return {
+        "sensor": "window_camera_1",
+        "image": encoded_string,
+        "timestamp": time.time()
+    }
     except FileNotFoundError:
         print("Error: Placeholder image not found.")
         return None
@@ -107,7 +97,7 @@ def simulate_smoke_sensor():
     
     # Randomly select a value from the shuffled list
     smoke_detected = random.choice(result)
-    
+
     return {
         "sensor": "smoke_sensor_1",
         "smoke_detected": smoke_detected,
@@ -136,21 +126,11 @@ while True:
     client.publish(MQTT_TOPIC_DOOR_MOTION, json.dumps(current_door_motion_data))
     print("Published Door Motion Sensor Data:", json.dumps(current_door_motion_data, indent=4))
 
-    # Simulate and publish door sensor data based on motion detection
-    door_data = simulate_door_sensor(current_door_motion)  # Pass motion state to door sensor simulation
-    # client.publish(MQTT_TOPIC_DOOR, json.dumps(door_data))(Need to fix later)
-    print("Published Door Sensor Data:", json.dumps(door_data, indent=4))
-
     # Simulate and publish window motion sensor data
     current_window_motion_data = simulate_window_motion_sensor()
     current_window_motion = current_window_motion_data["motion_detected"]
     client.publish(MQTT_TOPIC_WINDOW_MOTION, json.dumps(current_window_motion_data))
     print("Published Window Motion Sensor Data:", json.dumps(current_window_motion_data, indent=4))
-
-    # Simulate and publish window sensor data based on motion detected
-    window_data = simulate_window_sensor(current_window_motion) # Pass motion state to window sensor simulation
-    # client.publish(MQTT_TOPIC_WINDOW, json.dumps(window_data))
-    print("Published Window Sensor Data:", json.dumps(window_data, indent=4))
 
     # Simulate and publish temperature sensor data
     temperature_data = simulate_temperature_sensor()
@@ -171,22 +151,19 @@ while True:
     if current_door_motion and not motion_detected:
         image_data = capture_door_image()
         if image_data:
-            client.publish(MQTT_TOPIC_DOOR_CAMERA_IMAGE, image_data)
+            client.publish(MQTT_TOPIC_DOOR_CAMERA_IMAGE, json.dumps(image_data))
             client.publish(MQTT_TOPIC_DOOR_CAMERA_MOTION, "1")
-            print("Published Camera Image (Base64): [Image Data]")
-            print("Published Camera Motion Event: Motion detected")
+            print("Published Door Camera Image", json.dumps(image_data))
 
     # Publish image only when window motion state changes to True
     if current_window_motion and not motion_detected:
         image_data = capture_window_image()
         if image_data:
-            client.publish(MQTT_TOPIC_WINDOW_CAMERA_IMAGE, image_data)
+            client.publish(MQTT_TOPIC_WINDOW_CAMERA_IMAGE, json.dumps(image_data))
             client.publish(MQTT_TOPIC_WINDOW_CAMERA_MOTION, "1")
-            print("Published Camera Image (Base64): [Image Data]")
-            print("Published Camera Motion Event: Motion detected")
+            print("Published Window Camera Image", json.dumps(image_data))
 
     # Update the motion state
-
 
     # Wait for 5 seconds before sending the next set of data
     time.sleep(5)

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 
 # MongoDB Configuration
+# Load URI from .env
 MONGO_URI = os.getenv("DATABASE_URL")
 client = MongoClient(MONGO_URI)
 db = client["iotdata"]  # Database name

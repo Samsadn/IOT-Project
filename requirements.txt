@@ -1,0 +1,7 @@
+paho-mqtt
+Flask
+flask-cors
+pymongo
+python-dateutil
+pytz
+python-dotenv

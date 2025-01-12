@@ -5,9 +5,11 @@ from datetime import datetime, timedelta
 import json
 from dateutil import parser
 import pytz
+from dotenv import load_dotenv
+import os
 
 # MongoDB Configuration
-MONGO_URI = "mongodb+srv://iotgroup6:iotgroup6@iotcluster-v0.ykiu0.mongodb.net/?retryWrites=true&w=majority&appName=IOTCluster-V0"
+MONGO_URI = os.getenv("DATABASE_URL")
 client = MongoClient(MONGO_URI)
 db = client["iotdata"]  # Database name
 collection = db["mqttMessages"]  # Collection name
